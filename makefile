@@ -1,15 +1,22 @@
-CC = clang
-OBJs = ./build/cserver.o
+CC = gcc
 FLAGS = -c -g -Wall
+LIBS = -lpthread
+_OBJs = cserver.o imgpro.o
 
-cserver: cserver.o
-	$(CC) $(OBJs) -o cserver
+ODIR = ./build
+OBJs = $(patsubst %.o,$(ODIR)/%.o,$(_OBJs))
 
-cserver.o: cserver.c
-	$(CC) $(FLAGS) cserver.c -o ./build/cserver.o
+
+cserver: $(OBJs)
+	$(CC) $^ $(LIBS) -o $@
+
+$(ODIR)/%.o: %.c %.h
+	$(CC) $(FLAGS) $< -o $@
+
+
 
 clean:
-	rm ./build/*.o cserver test_run
+	rm *.o $(ODIR)/*.o cserver test_c
 
 test: test_c.c
-	$(CC) -g -Wall test_c.c -o test_run
+	$(CC) -g -Wall -ansi test_c.c -o test_c

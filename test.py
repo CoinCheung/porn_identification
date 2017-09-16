@@ -45,11 +45,8 @@ import time
 #  while True:
 #      pass
 
-#  import socket
-#
-#  s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-#  s.connect(('127.0.0.1',4000))
-#  s.send('request from python script')
+
+
 
 import numpy as np
 a = [(1,2,3),(4,5,6),(7,8,9)]
@@ -65,56 +62,129 @@ b = np.array(a)
 print(b.size)
 print(b)
 print(b[1][2])
+print(b.tostring())
+print('before image')
 
 
 from scipy import misc
 #  im = misc.imread('pic.jpg')
-im = misc.imread('test_initImg.png')
+im = misc.imread('test_misc_toRGB.jpg')
 print(im[4][5])
 print(type(im))
+print('shape')
 print(im.shape)
 print(im.dtype)
+print('size')
 print(im.size)
 print(im.ctypes)
+print(im.strides)
+print(im.__array_interface__['data'])
+print(im.tobytes().__len__())
 
-print('showimage')
-import matplotlib.pyplot as plt
-plt.figure('show image')
-plt.imshow(im)
-plt.show()
-
-#  for i in range(im.shape[0]):
-#      for j in range(im.shape[1]):
-#          im[i][j][1] -= 1
-
-misc.imsave('test_misc_imsave.png',im, 'png')
-
-im = np.fromfile('pic.jpg',np.uint8)
-print(im[34])
-print(im.size/3)
-print(im.shape)
-#  im.reshape(im.size/3, 3)
-
-print('try to convert mode')
-im = misc.imread('test_initImg.png',flatten = True, mode = None)
-print(im.shape)
-misc.imsave('test_misc_toGray.jpg',im, 'jpeg')
-
-im = misc.imread('test_initImg.png',flatten = False, mode = 'L')
-print(im.shape)
-misc.imsave('test_misc_toL.jpg',im, 'jpeg')
-
-im = misc.imread('test_initImg.png',flatten = False, mode = 'RGB')
-im_rotated = misc.imrotate(im,45,interp='bilinear')
-im_resized = misc.imresize(im,(400,355),interp='bilinear')
-misc.imsave('test_misc_toRGB.jpg',im, 'jpeg')
-misc.imsave('test_misc_rotated.jpg',im_rotated, 'jpeg')
-misc.imsave('test_misc_resized.jpg',im_resized, 'jpeg')
-#  misc.pilutil.imshow(im)
-print(im.shape)
-print(im_resized.shape)
-print(im[3][4])
+if im.shape[0]*im.shape[1]*im.shape[2] == im.size:
+    print('size is right')
 
 
-channels = 3000
-print(str(channels).encode('utf8'))
+num = 23
+print(str(hex(num)))
+
+arr = [2,3,4,5,6]
+print(type((str(arr)[2])))
+arr = np.array([[1,2,3,4],[1,2,3,4]],dtype = np.uint8)
+print(arr.tobytes())
+
+
+
+import socket
+import time
+
+time.sleep(1)
+
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.connect(('127.0.0.1',4000))
+
+s.send('12'.encode('utf8'))
+rsp = s.recv(1024)
+#  print(rsp)
+if rsp != b'1':
+    print('Error: cserver has no response to height')
+
+s.send('12'.encode('utf8'))
+
+rsp = s.recv(1024)
+#  print(rsp)
+if rsp != b'1':
+    print('Error: cserver has no response to height')
+
+s.send('12'.encode('utf8'))
+
+rsp = s.recv(1024)
+#  print(rsp)
+if rsp != b'1':
+    print('Error: cserver has no response to height')
+
+s.send('12'.encode('utf8'))
+
+rsp = s.recv(1024)
+#  print(rsp)
+if rsp != b'1':
+    print('Error: cserver has no response to height')
+
+s.send('12'.encode('utf8'))
+
+rsp = s.recv(1024)
+#  print(rsp)
+if rsp != b'1':
+    print('Error: cserver has no response to height')
+
+
+s.send('end'.encode('utf8'))
+
+s.close()
+
+
+#
+#  #  exit()
+#
+#  print('showimage')
+#  import matplotlib.pyplot as plt
+#  plt.figure('show image')
+#  plt.imshow(im)
+#  plt.show()
+#
+#  #  for i in range(im.shape[0]):
+#  #      for j in range(im.shape[1]):
+#  #          im[i][j][1] -= 1
+#
+#  misc.imsave('test_misc_imsave.png',im, 'png')
+#
+#  im = np.fromfile('pic.jpg',np.uint8)
+#  print(im[34])
+#  print(im.size/3)
+#  print(im.shape)
+#  #  im.reshape(im.size/3, 3)
+#
+#  print('try to convert mode')
+#  im = misc.imread('test_initImg.png',flatten = True, mode = None)
+#  print(im.shape)
+#  misc.imsave('test_misc_toGray.jpg',im, 'jpeg')
+#
+#  im = misc.imread('test_initImg.png',flatten = False, mode = 'L')
+#  print(im.shape)
+#  misc.imsave('test_misc_toL.jpg',im, 'jpeg')
+#
+#  im = misc.imread('test_initImg.png',flatten = False, mode = 'RGB')
+#  im_rotated = misc.imrotate(im,45,interp='bilinear')
+#  im_resized = misc.imresize(im,(400,355),interp='bilinear')
+#  misc.imsave('test_misc_toRGB.jpg',im, 'jpeg')
+#  misc.imsave('test_misc_rotated.jpg',im_rotated, 'jpeg')
+#  misc.imsave('test_misc_resized.jpg',im_resized, 'jpeg')
+#  #  misc.pilutil.imshow(im)
+#  print(im.shape)
+#  print(im_resized.shape)
+#  print(im[3][4])
+#  #  print(type(im[3][4]))
+#
+#
+#  channels = 3000
+#  #  print(str(channels).encode('utf8'))

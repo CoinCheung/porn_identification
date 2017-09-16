@@ -4,11 +4,20 @@
 /* ============================================
  * entrance of the thread
  * ============================================ */
+pthread_t thread; 
+
+
+
+/* ============================================
+ * entrance of the thread
+ * ============================================ */
 int main()
 {
     printf("in c process\n");
 
     enter_socket_listen();
+
+    return 0;
 }
 
 
@@ -29,10 +38,12 @@ void enter_socket_listen()
     int socket_client = -1; // 没得到client的socket信息，返回值不变
     int bind_result = -1; // bind 失败不返回值
     int listen_result = -1; // 监听失败无返回值，仍为-1 
-    int client_addr_len = 0;
+    socklen_t client_addr_len = 0;
     char receive_buffer[1024];
     unsigned int free_port_num;
+    char *resp = "1";
     char *endflag = "end";
+    img_para img_para;
 
     /* find an unoccupied port */
     free_port_num = scan_leisure_port();
@@ -74,10 +85,9 @@ void enter_socket_listen()
         close(socket_server);
         exit(1);
     }
-    printf("listening ... \n");
+    printf("listening ... \n\n\n");
 
     // loop to serve the client connection
-    char *ss = "server: received";
     while(true)
     {
         /* establish the connection when a requset is accepted */
@@ -90,24 +100,34 @@ void enter_socket_listen()
             close(socket_client);
             exit(0);
         }
-        printf("client connection establish ... done \n");
+        printf("server: connection establishing ... done \n");
 
-        /* receive message sent by client */
+        /* receive image information sent by client */
+        img_para = receive_img_data(socket_server, socket_client);
+        fputs("server: Image pixel data received\n",stdout);
+
+        /* handle the picture in a sub thread */
+        thread_handle_img(0, &img_para);
+
+
+        /* check if end signal received */
         memset(receive_buffer, 0, sizeof(receive_buffer));
         read(socket_client, receive_buffer, sizeof(receive_buffer));
-        fprintf(stdout,"the message is: %s\n",receive_buffer);
-        write(socket_client,ss,strlen(ss));
+        fprintf(stdout,"server: receive end flag: %s\n",receive_buffer);
+        write(socket_client,resp,strlen(resp));
 
         if(!strcmp(receive_buffer,endflag))
             break;
     }
 
     // wait for the client to disconnect and kill the sokcets
-    fputs("cserver exit signal received, wait for client to exit ... done \n",stdout);
-    sleep(3);
+    fputs("server: exit signal received, wait for client to exit ... done \n",stdout);
+    sleep(2);
+    fputs("\nserver: closing sockets \n",stdout);
     close(socket_client);
     close(socket_server);
-    fputs("cserver exited\n",stdout);
+    fputs("server: exited\n",stdout);
+
 }
 
 
@@ -187,3 +207,118 @@ int is_port_occupied(char line[],int len, int port_num)
     return false;
 }
 
+
+
+/* function: receive_img_data(int socket_server, int socket_client)
+ *
+ * receive the image parameter and collect to a struct */
+img_para receive_img_data(int socket_server, int socket_client)
+{
+    img_para img;
+    long read_num = 0;
+    char receive_buffer[32];
+    char *resp = "1";
+
+    // receive image channel
+    memset(receive_buffer, 0, sizeof(receive_buffer));
+    read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    while(read_num == 0)
+    {
+        fputs("read channel but receive no byte, try again\n",stdout);
+        read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    }
+    img.channel = atoi(receive_buffer);
+    fprintf(stdout,"server: receive the image channel number: %d\n",img.channel);
+    write(socket_client,resp,strlen(resp));
+    
+    // receive image width 
+    memset(receive_buffer, 0, sizeof(receive_buffer));
+    read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    while(read_num == 0)
+    {
+        fputs("read width but receive no byte, try again\n",stdout);
+        read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    }
+    img.width = atoi(receive_buffer);
+    fprintf(stdout,"server: receive the image width: %d\n",img.width);
+    write(socket_client,resp,strlen(resp));
+
+    // receive image height 
+    memset(receive_buffer, 0, sizeof(receive_buffer));
+    read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    while(read_num == 0)
+    {
+        fputs("read height but receive no byte, try again\n",stdout);
+        read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    }
+    img.height = atoi(receive_buffer);
+    fprintf(stdout,"server: receive the image height: %d\n",img.height);
+    write(socket_client,resp,strlen(resp));
+
+    // receive image size 
+    memset(receive_buffer, 0, sizeof(receive_buffer));
+    read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    while(read_num == 0)
+    {
+        fputs("read height but receive no byte, try again\n",stdout);
+        read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
+    }
+    img.size = atoi(receive_buffer);
+    fprintf(stdout,"server: receive the image size: %ld\n",img.size);
+    write(socket_client,resp,strlen(resp));
+
+
+    // receive image data  
+    read_num = 0;
+    img.data = malloc(img.size*sizeof(uint8_t));
+    memset(img.data, 0, img.size*sizeof(uint8_t));
+    read_num += read(socket_client, img.data+read_num, img.size * sizeof(uint8_t));
+    while(read_num != img.size)
+    {
+        fprintf(stdout,"server: the image data received: %ld bytes \n",read_num);
+        read_num += read(socket_client, img.data+read_num, img.size * sizeof(uint8_t));
+    }
+    write(socket_client,resp,strlen(resp));
+
+    return img;
+}
+
+
+
+/* function: 
+ *
+ * 
+ */
+void create_thread_handle(int ind,void *img)
+{
+    int thread_result = 0;
+    fputs("create subthread to handle this image\n",stdout);
+
+    thread_result = pthread_create(&thread, NULL, &thread_handle_img, (img_para*)img);
+    if(thread_result != 0)
+    {
+        perror("thread create fail");
+        exit(0);
+    }
+
+}
+
+
+
+/* function: void* thread_handle_img(int ind,void *img); 
+ *
+ * handle the image with different functions assigned by ind in a new thread
+ */
+void thread_handle_img(int ind,void *img)
+{
+    int thread_result = 0;
+    fputs("create subthread to handle this image\n",stdout);
+
+    thread_result = pthread_create(&thread, NULL, identify_porn, (img_para*)img);
+    if(thread_result != 0)
+    {
+        perror("thread create fail");
+        exit(0);
+    }
+
+}
