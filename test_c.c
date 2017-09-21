@@ -18,6 +18,14 @@ typedef struct
 } img_para;
 
 
+void* fun()
+{
+    char *p = NULL;
+
+    p = malloc(10*sizeof(char));
+
+    return (void*)p;
+}
 
 int main()
 {
@@ -37,6 +45,11 @@ int main()
      * rec[8] = 67; */
     rec[9] = 0;
 
+    int *ipp = NULL;
+    ipp = fun();
+    *ipp = 3;
+    fprintf(stdout,"value of *ipp is: %d\n",*ipp);
+
 
     /* rec2[9][1] = 0; */
     p = rec;
@@ -52,8 +65,8 @@ int main()
     p = (char *)malloc(100);
     memset(p,5,100);
 
-    char *str = "0x040xdc";
-    fprintf(stdout,"number is(hex): %ld\n", strtol(str, NULL, 0));
+    // char *str = "0x040xdc";
+    // fprintf(stdout,"number is(hex): %ld\n", strtol(str, NULL, 0));
 
     int m=3, n= 5;
     /* char (*pp)[m][n] = malloc(m*n*4); */
@@ -63,6 +76,27 @@ int main()
     pp = malloc(m*n*4);
     memset(pp,3,m*n*4);
     fprintf(stdout, "array value is: %d\n",pp[1][1][1]);
+
+    char *str = "abcdefghijklmn";
+    void *vp;
+    vp = str;
+    fprintf(stdout,"%s\n",vp);
+    fprintf(stdout,"%s\n",vp+2);
+
+    int width = 500;
+    int height = 30;
+    int skin = 1000;
+    double ratio;
+
+    ratio = (double)skin/(width*height);
+    fprintf(stdout, "ratio is: %lf\n",ratio);
+    char *cp = malloc(sizeof(char)*10);
+
+    for(int i = 0; i < 10; i++)
+        sprintf(cp+i,"%d",i);
+
+    fprintf(stdout, "printed char is: %s\n",cp);
+
     /* fprintf(stdout, "array value is: %d\n",aa[3]); */
 
 /*     while(1){
@@ -151,18 +185,19 @@ int main()
 /* function: unsigned int scan_leisure_port()
  * scan the ports of the computer and return an unoccupied one
  * netstat is required here */
-unsigned int scan_leisure_port()
-{
-    unsigned int port_num = 1025;
-    char line[1024];
-    FILE *fhd = NULL;
-    char portExists = 0;
-
-    system("netstat -ano > netstat.log");
-    
-    fhd = fopen("netstat.log", "r");
-
-/*     while(1)
+/* unsigned int scan_leisure_port()
+ * {
+ *
+ *     unsigned int port_num = 1025;
+ *     char line[1024];
+ *     FILE *fhd = NULL;
+ *     char portExists = 0;
+ *
+ *     system("netstat -ano > netstat.log");
+ *
+ *     fhd = fopen("netstat.log", "r");
+ *
+ *     while(1)
  *     {
  *         memset(line, 0, sizeof(line));  //reset the readline buffer
  *         // if(rewind(fhd) != 0) // rewind the file pointer position
@@ -190,8 +225,8 @@ unsigned int scan_leisure_port()
  *
  *     fclose(fhd);
  *
- *     return port_num; */
-}
+ *     return port_num;
+ * } */
 
 
 /* function: is_port_occupied(char[], int len, int port_num)

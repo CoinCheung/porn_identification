@@ -2,18 +2,18 @@
 
 
 /* ============================================
- * entrance of the thread
+ * global variables
  * ============================================ */
 pthread_t thread; 
 
 
 
 /* ============================================
- * entrance of the thread
+ * entrance of the main thread
  * ============================================ */
 int main()
 {
-    printf("in c process\n");
+    printf("C: in c process\n");
 
     enter_socket_listen();
 
@@ -28,7 +28,11 @@ int main()
 /* function: void enter_socket_listen()
  *
  * establish server socket
- * run the socket server and listen to a leisure port */
+ * run the socket server and listen to a leisure port 
+ * 
+ * input: 
+ * return:
+ * */
 void enter_socket_listen()
 {
     /* varaiables */
@@ -47,9 +51,9 @@ void enter_socket_listen()
 
     /* find an unoccupied port */
     free_port_num = scan_leisure_port();
-    printf("find free port ... done\n port number is: %d\n",free_port_num);
+    printf("server: find free port ... done\n server: port number is: %d\n",free_port_num);
     free_port_num = 4000;
-    fprintf(stdout,"set the server port number as:%d\n",free_port_num);
+    fprintf(stdout,"server: set the server port number as:%d\n",free_port_num);
 
     /* initalize server address struct */
     server_addr.sin_family = AF_INET;
@@ -65,7 +69,7 @@ void enter_socket_listen()
         close(socket_server);
         exit(0);
     }
-    printf("establish server socket ... done \n");
+    printf("server: establish server socket ... done \n");
 
     /* bind socket with the listening port  */
     bind_result = bind(socket_server, (struct sockaddr *)&server_addr, sizeof(server_addr));
@@ -75,7 +79,7 @@ void enter_socket_listen()
         close(socket_server);
         exit(0);
     }
-    printf("server bind to port ... done \n");
+    printf("server: bind to port ... done \n");
 
     /* let socket listen to the port it binde */
     listen_result = listen(socket_server, 5);
@@ -85,7 +89,7 @@ void enter_socket_listen()
         close(socket_server);
         exit(1);
     }
-    printf("listening ... \n\n\n");
+    printf("server: listening ... \n\n\n");
 
     // loop to serve the client connection
     while(true)
@@ -106,8 +110,9 @@ void enter_socket_listen()
         img_para = receive_img_data(socket_server, socket_client);
         fputs("server: Image pixel data received\n",stdout);
 
+
         /* handle the picture in a sub thread */
-        thread_handle_img(0, &img_para);
+        create_thread_handle(0, &img_para,socket_server,socket_client);
 
 
         /* check if end signal received */
@@ -122,8 +127,16 @@ void enter_socket_listen()
 
     // wait for the client to disconnect and kill the sokcets
     fputs("server: exit signal received, wait for client to exit ... done \n",stdout);
-    sleep(2);
+
+    fputs("server: join for the sub-threads \n",stdout);
+    pthread_join(thread, NULL);
+    fputs("server: all sub-thread terminated \n",stdout);
+    free(img_para.data);
+
     fputs("\nserver: closing sockets \n",stdout);
+    shutdown(socket_client, SHUT_RDWR);
+    shutdown(socket_server, SHUT_RDWR);
+    sleep(2);
     close(socket_client);
     close(socket_server);
     fputs("server: exited\n",stdout);
@@ -134,13 +147,17 @@ void enter_socket_listen()
 /* function: unsigned int scan_leisure_port()
  *
  * scan the ports of the computer and return an unoccupied one
- * netstat is required here */
+ * netstat is required here 
+ * 
+ * input:
+ * return:
+ * */
 unsigned int scan_leisure_port()
 {
     unsigned int port_num = 1025;
     char line[1024];
     FILE *fhd = NULL;
-    char portExists = 0;
+    bool portExists = 0;
 
     system("netstat -ano > netstat.log");
     
@@ -185,7 +202,7 @@ unsigned int scan_leisure_port()
 /* function: is_port_occupied(char[], int len, int port_num)
  *
  * try the line char[] to see if port is in it */
-int is_port_occupied(char line[],int len, int port_num)
+bool is_port_occupied(char line[],int len, int port_num)
 {
     char port_str1[10];
     char port_str2[10];
@@ -211,7 +228,11 @@ int is_port_occupied(char line[],int len, int port_num)
 
 /* function: receive_img_data(int socket_server, int socket_client)
  *
- * receive the image parameter and collect to a struct */
+ * receive the image parameter and collect to a struct 
+ *
+ * input:
+ * return:
+ * */
 img_para receive_img_data(int socket_server, int socket_client)
 {
     img_para img;
@@ -224,7 +245,7 @@ img_para receive_img_data(int socket_server, int socket_client)
     read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     while(read_num == 0)
     {
-        fputs("read channel but receive no byte, try again\n",stdout);
+        fputs("server: read channel but receive no byte, try again\n",stdout);
         read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     }
     img.channel = atoi(receive_buffer);
@@ -236,7 +257,7 @@ img_para receive_img_data(int socket_server, int socket_client)
     read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     while(read_num == 0)
     {
-        fputs("read width but receive no byte, try again\n",stdout);
+        fputs("server: read width but receive no byte, try again\n",stdout);
         read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     }
     img.width = atoi(receive_buffer);
@@ -248,7 +269,7 @@ img_para receive_img_data(int socket_server, int socket_client)
     read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     while(read_num == 0)
     {
-        fputs("read height but receive no byte, try again\n",stdout);
+        fputs("server: read height but receive no byte, try again\n",stdout);
         read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     }
     img.height = atoi(receive_buffer);
@@ -260,7 +281,7 @@ img_para receive_img_data(int socket_server, int socket_client)
     read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     while(read_num == 0)
     {
-        fputs("read height but receive no byte, try again\n",stdout);
+        fputs("server: read height but receive no byte, try again\n",stdout);
         read_num = read(socket_client, receive_buffer, sizeof(receive_buffer));
     }
     img.size = atoi(receive_buffer);
@@ -285,40 +306,69 @@ img_para receive_img_data(int socket_server, int socket_client)
 
 
 
-/* function: 
+/* function: void create_thread_handle(int ind,void *img, int socket_server, int socket_client)
  *
+ * create a new thread to handle the image received from the client. Different tasks are optioned with different ind
  * 
+ * input: index of the optional method used upon the image, a structure depicts the image, server socket and client socket used to communicate with the client
+ * return: none
  */
-void create_thread_handle(int ind,void *img)
+void create_thread_handle(int ind,void *img, int socket_server, int socket_client)
 {
     int thread_result = 0;
-    fputs("create subthread to handle this image\n",stdout);
+    thread_para *tp;
 
-    thread_result = pthread_create(&thread, NULL, &thread_handle_img, (img_para*)img);
+    tp = malloc(sizeof(thread_para));
+    tp->img = img;
+    tp->ind = ind;
+    tp->socket_server = socket_server;
+    tp->socket_client = socket_client;
+    fputs("\nserver: create subthread to handle this image\n",stdout);
+
+    if(ind == 0) // if other methods are called, add them here with different ind
+        thread_result = pthread_create(&thread, NULL, thread_handle_img, tp);
     if(thread_result != 0)
     {
         perror("thread create fail");
         exit(0);
     }
-
 }
 
 
 
-/* function: void* thread_handle_img(int ind,void *img); 
+/* function: void* thread_handle_img(thread_para *tp); 
  *
+ * This is the function that run in a new thread
  * handle the image with different functions assigned by ind in a new thread
+ *
+ * input: a structure of parameters given to the thread
+ * return: none
  */
-void thread_handle_img(int ind,void *img)
+void *thread_handle_img(thread_para *tp)
 {
-    int thread_result = 0;
-    fputs("create subthread to handle this image\n",stdout);
+    uint8_t *sk = NULL;
+    long send_length;
+    long send_all_length = 0;
+    long size;
 
-    thread_result = pthread_create(&thread, NULL, identify_porn, (img_para*)img);
-    if(thread_result != 0)
+    size = (((img_para*)(tp->img))->width) * (((img_para*)(tp->img))->height);
+
+    fputs("[server thread 2] in the new thread!!\n",stdout);
+    if(tp->ind == 0) 
+        sk = (uint8_t*)identify_porn(tp->img);
+
+    fputs("[server thread 2] send handled image to client... \n",stdout);
+    while(send_all_length < size)
     {
-        perror("thread create fail");
-        exit(0);
+        send_length = write(tp->socket_client,(sk + send_all_length),(size-send_all_length));
+        send_all_length += send_length;
+        
+        fprintf(stdout,"[server thread 2] length of sent %ld\n",send_length);
     }
 
+    fputs("[server thread2] identification porn done!!\n",stdout);
+    free(tp);
+    free(sk);
 }
+
+

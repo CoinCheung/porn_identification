@@ -6,6 +6,7 @@
  * ============================================== */
 #include<stdio.h>
 #include<stdlib.h>
+#include<stdbool.h>
 #include"sys/types.h"
 #include"sys/un.h"
 #include<sys/socket.h>
@@ -18,8 +19,18 @@
 /* ==============================================
  * micros and data type definitions 
  * ============================================== */
-#define true 1
-#define false 0
+
+/* types definition */
+// struct of the parameters passed to the new thread
+typedef struct
+{
+    void *img; // points to the structure containing image information 
+    int ind; // index of the method
+    int socket_client;
+    int socket_server;
+    int result;
+}thread_para;
+
 
 
 
@@ -28,8 +39,10 @@
  * ============================================== */
 void enter_socket_listen(); //establish server socket and listen to request
 unsigned int scan_leisure_port(); // look for a port not being used
-int is_port_occupied(char line[], int len, int port_num); // try the line and see if there are port number
+bool is_port_occupied(char line[], int len, int port_num); // try the line and see if there are port number
 img_para receive_img_data(int server, int client); // receive information struct of image
-void thread_handle_img(int ind,void *img); // 
-void create_thread_handle(int ind,void *img);//create a new thread and handle the picture 
+void *thread_handle_img(thread_para *tp); // 
+void create_thread_handle(int ind,void *img, int socket_server, int socket_client);//create a new thread and handle the picture 
+
+
 #endif

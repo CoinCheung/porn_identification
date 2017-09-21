@@ -47,7 +47,7 @@ import time
 
 
 
-
+from PIL import Image
 import numpy as np
 a = [(1,2,3),(4,5,6),(7,8,9)]
 c = []
@@ -91,7 +91,35 @@ print(str(hex(num)))
 arr = [2,3,4,5,6]
 print(type((str(arr)[2])))
 arr = np.array([[1,2,3,4],[1,2,3,4]],dtype = np.uint8)
-print(arr.tobytes())
+#  print(arr.tobytes())
+
+arr_new = np.array([1,2,3,4,5,6,7])
+print(arr_new)
+arr = '101010'.encode('utf8')
+print(arr)
+print(arr.decode())
+print(np.fromstring(arr, dtype = np.uint8))
+print(list(arr.decode()))
+print(np.array(arr))
+print(type(arr))
+
+print('numpy to bytes')
+arr = np.array([1,2,3,4,5], dtype = np.uint8)
+print(arr)
+byarr = arr.tobytes()
+print(byarr)
+arrbak = np.fromstring(byarr, dtype = np.uint8)
+print(arrbak)
+
+im = np.array([1,0,0,1,0,1])
+print(im)
+
+img = Image.frombytes('1',(2,3),im.tobytes())
+print('abcd')
+
+arr = np.zeros((512,512,3),dtype = np.uint8)
+img = Image.fromarray(arr,mode='RGB')
+img.save('test_fromarray.jpg','JPEG')
 
 
 
@@ -110,28 +138,30 @@ if rsp != b'1':
     print('Error: cserver has no response to height')
 
 s.send('12'.encode('utf8'))
-
 rsp = s.recv(1024)
 #  print(rsp)
 if rsp != b'1':
     print('Error: cserver has no response to height')
 
 s.send('12'.encode('utf8'))
-
 rsp = s.recv(1024)
 #  print(rsp)
 if rsp != b'1':
     print('Error: cserver has no response to height')
 
 s.send('12'.encode('utf8'))
-
 rsp = s.recv(1024)
 #  print(rsp)
 if rsp != b'1':
     print('Error: cserver has no response to height')
 
 s.send('12'.encode('utf8'))
+rsp = s.recv(1024)
+#  print(rsp)
+if rsp != b'1':
+    print('Error: cserver has no response to height')
 
+s.send('12'.encode('utf8'))
 rsp = s.recv(1024)
 #  print(rsp)
 if rsp != b'1':
@@ -141,6 +171,7 @@ if rsp != b'1':
 s.send('end'.encode('utf8'))
 
 s.close()
+
 
 
 #

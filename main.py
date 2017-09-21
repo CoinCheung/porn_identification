@@ -11,8 +11,10 @@ import subprocess
 import socket
 import time
 import ctypes
+from PIL import Image
 from scipy import misc
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 
@@ -23,7 +25,10 @@ import numpy as np
 
 ## function: send_img_info(img, socket)
 ##
+## send the image information to the server to handle, through the given client socket
 ##
+## input: an scipy.misc object containing infomation of the image, such as image shape, channel, pixel information, etc. a client socket established and connected to the server which allows communicating with server directly
+## return: None
 def send_img_info(img, socket_client):
     channels = img.shape[2]
     width = img.shape[1]
@@ -103,15 +108,31 @@ if __name__ == '__main__':
     send_img_info(img, socket_client)
     print(' \n ')
 
+
     # send end flag to server
     socket_client.send('end'.encode('utf8'))
     message = socket_client.recv(32)
-    #  if message != '1':
-    #      message = socket_client.recv(32)
     print('client: response of end flag received is %s'%message)
+
+    # receive results black white picture from C
+#this should be collect to a single function
+    print('client: receiving results')
+    rec_len = 0
+    rec_all = ''.encode('utf8')
+    all_len = img.shape[0]*img.shape[1]
+    while rec_len < all_len:
+        rec_bytes = socket_client.recv(img.size)
+        rec_all = ''.encode('utf8').join([rec_all, rec_bytes])
+        print('client: receive length is {}'.format(len(rec_bytes)))
+        rec_len += len(rec_bytes)
+        print('client: all received bytes length is {}'.format(rec_len))
+
+
+    im_new = Image.frombytes('L',(img.shape[1], img.shape[0]),rec_all)
+
+    im_new.save('test_bw_porn.jpg','JPEG')
 
     print('client: close socket ',)
     socket_client.close()
 
-    time.sleep(3)
 
