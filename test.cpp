@@ -5,7 +5,9 @@ using std::cout;
 using std::endl;
 
 
-int main()
+int main(void)
 {
-    cout<< 'good morning' << endl;
+    cout<< "good morning" << endl;
+
+    return 0;
 }

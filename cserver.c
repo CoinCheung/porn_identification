@@ -11,7 +11,7 @@ pthread_t thread;
 /* ============================================
  * entrance of the main thread
  * ============================================ */
-int main()
+int main(void)
 {
     printf("C: in c process\n");
 

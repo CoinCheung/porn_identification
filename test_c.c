@@ -27,7 +27,7 @@ void* fun()
     return (void*)p;
 }
 
-int main()
+int main(void)
 {
     int i = 0;
     char rec[10];
@@ -179,6 +179,8 @@ int main()
     /* // strcpy(b,a); */
     /* fputs(b,stdout); */
     /* fprintf(stdout,"\n%d\n",(int)strlen(b)); */
+
+    return 0;
 
 }
 
